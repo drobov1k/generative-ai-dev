@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Blocks pushes directly to master or main.
+
+protected="^(master|main)$"
+
+while read local_ref local_sha remote_ref remote_sha; do
+  branch="${remote_ref##refs/heads/}"
+  if [[ "$branch" =~ $protected ]]; then
+    echo "[pre-push] Blocked: pushing directly to '$branch' is not allowed."
+    echo "           Create a feature/fix branch and open a PR instead."
+    exit 1
+  fi
+done
+
+exit 0

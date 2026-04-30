@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Blocks commits directly on master or main.
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+protected="^(master|main)$"
+
+if [[ "$branch" =~ $protected ]]; then
+  echo "[pre-commit] Blocked: committing directly to '$branch' is not allowed."
+  echo "             Create a branch: git checkout -b feat(<spec>): <description>"
+  exit 1
+fi
+
+exit 0
