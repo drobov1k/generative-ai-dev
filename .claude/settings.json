@@ -38,6 +38,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/update-docs.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/spec-sync-reminder.js"
           }
         ]
       }
