@@ -60,9 +60,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build shared types
-        run: npm run build --workspace=packages/shared
-
       - name: Typecheck API handlers
         run: npm run typecheck --workspace=apps/api
 

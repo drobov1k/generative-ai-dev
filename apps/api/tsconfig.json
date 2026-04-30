@@ -8,7 +8,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@gen-ai/shared": ["../../packages/shared/src/types/index.ts"]
+    }
   },
   "include": ["src"]
 }
