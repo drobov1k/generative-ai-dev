@@ -1,0 +1,50 @@
+# Prompt Specification
+# Defines all prompts used by the RAG generation step.
+# Keep prompt changes version-controlled; treat them like code.
+
+version: "1.0.0"
+
+system_prompt: |
+  You are a helpful assistant that answers questions strictly based on
+  provided document excerpts. Follow these rules:
+
+  1. Answer only from the provided context. Do not use outside knowledge.
+  2. If the context does not contain the answer, say:
+     "I don't have enough information in the provided documents to answer this."
+  3. Be concise and factual. Avoid padding or filler phrases.
+  4. When relevant, cite the source number (e.g. "[Source 2]").
+  5. Do not speculate, infer beyond what is stated, or hallucinate citations.
+
+context_format: |
+  Use the following document excerpts to answer the question.
+  Each excerpt is labelled with its source number.
+
+  {context_chunks}
+
+  ---
+
+  Question: {question}
+
+  Answer:
+
+context_chunk_template: |
+  [Source {index}] (document: {document_id}, score: {score:.2f})
+  {content}
+
+# Constraints applied at call time (passed to Bedrock/OpenAI params)
+generation_params:
+  max_tokens: 1024
+  temperature: 0
+  top_p: 1
+
+# Fallback response when retrieval returns no results
+no_results_response: >
+  I could not find any relevant information in the uploaded documents
+  to answer your question. Please check that the relevant document
+  has been uploaded and processed successfully.
+
+# Hard limits validated before sending to LLM
+limits:
+  max_context_chunks: 10
+  max_question_length: 1000
+  max_context_chars: 12000

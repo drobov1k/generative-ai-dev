@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Document Q&A API
+  description: RAG-based document question answering system
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local (TypeScript API → Python FastAPI)
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    description: AWS API Gateway
+    variables:
+      apiId:
+        default: changeme
+      region:
+        default: us-east-1
+      stage:
+        default: prod
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Service health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /upload:
+    post:
+      operationId: uploadDocument
+      summary: Upload a document for ingestion and indexing
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF or plain-text document
+                document_id:
+                  type: string
+                  description: Optional client-supplied ID (uuid generated if omitted)
+      responses:
+        '202':
+          description: Document accepted for async processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /query:
+    post:
+      operationId: queryDocuments
+      summary: Ask a question against the indexed documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Answer with retrieved sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+    UploadResponse:
+      type: object
+      required: [document_id, status]
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [processing, completed, failed]
+        message:
+          type: string
+
+    QueryRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        document_ids:
+          type: array
+          items:
+            type: string
+          description: Filter retrieval to specific documents (omit for all)
+        top_k:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+
+    QueryResponse:
+      type: object
+      required: [answer, question, sources]
+      properties:
+        answer:
+          type: string
+        question:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievalResult'
+
+    RetrievalResult:
+      type: object
+      required: [chunk_id, document_id, content, score]
+      properties:
+        chunk_id:
+          type: string
+        document_id:
+          type: string
+        content:
+          type: string
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        metadata:
+          type: object
+          additionalProperties: true
+
+    HealthResponse:
+      type: object
+      required: [status, version, timestamp]
+      properties:
+        status:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

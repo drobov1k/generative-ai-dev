@@ -1,0 +1,21 @@
+{
+  "name": "generative-ai-dev",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "infra/cdk"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:python": "cd services/llm-python && uvicorn main:app --reload --port 8000",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "cdk:synth": "npm run synth --workspace=infra/cdk",
+    "cdk:deploy": "npm run deploy --workspace=infra/cdk"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,101 @@
+# Domain Model Specification
+# These are the canonical data models shared across TypeScript and Python layers.
+
+Document:
+  description: >
+    A source file uploaded by the user. Stored in S3; metadata in DynamoDB or RDS.
+  fields:
+    id:
+      type: uuid
+      description: Globally unique identifier (generated on upload)
+    filename:
+      type: string
+      description: Original file name
+    content_type:
+      type: string
+      examples: [application/pdf, text/plain, text/markdown]
+    s3_key:
+      type: string
+      description: S3 object key — documents/{id}/{filename}
+    status:
+      type: enum
+      values: [pending, processing, ready, failed]
+      description: Ingestion pipeline status
+    created_at:
+      type: datetime (ISO 8601)
+    metadata:
+      type: object
+      description: Arbitrary key-value pairs (page count, author, tags, etc.)
+
+Chunk:
+  description: >
+    A fixed-size text segment derived from a Document during ingestion.
+    Chunks are the unit stored in the vector index.
+  fields:
+    id:
+      type: uuid
+    document_id:
+      type: uuid
+      ref: Document.id
+    content:
+      type: string
+      description: Raw text content of the chunk
+    embedding:
+      type: float[]
+      dimensions: 1536
+      description: Dense vector representation (Amazon Titan / OpenAI ada-002)
+    position:
+      type: int
+      description: Zero-based chunk index within the parent document
+    token_count:
+      type: int
+    metadata:
+      type: object
+      fields:
+        page:
+          type: int
+          optional: true
+        heading:
+          type: string
+          optional: true
+
+Query:
+  description: >
+    A user question submitted for retrieval-augmented answering.
+    Logged for observability and future fine-tuning.
+  fields:
+    id:
+      type: uuid
+    question:
+      type: string
+      max_length: 1000
+    document_ids:
+      type: uuid[]
+      optional: true
+      description: Scope retrieval to these documents; empty means all
+    top_k:
+      type: int
+      default: 5
+      description: Number of chunks to retrieve
+    created_at:
+      type: datetime (ISO 8601)
+
+RetrievalResult:
+  description: >
+    A single chunk returned by the vector search, with its similarity score.
+  fields:
+    chunk_id:
+      type: uuid
+      ref: Chunk.id
+    document_id:
+      type: uuid
+      ref: Document.id
+    content:
+      type: string
+    score:
+      type: float
+      range: [0.0, 1.0]
+      description: Cosine similarity between query embedding and chunk embedding
+    metadata:
+      type: object
+      description: Passes through Chunk.metadata for citation display

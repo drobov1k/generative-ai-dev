@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx cdk *)",
+      "Bash(pip install -r requirements.txt)",
+      "Bash(pip list)",
+      "Bash(python main.py)",
+      "Bash(python -m pytest *)",
+      "Bash(uvicorn *)",
+      "Bash(curl -s *)",
+      "Bash(curl -X POST *)",
+      "Bash(find . -name *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
+    "deny": []
+  }
+}
