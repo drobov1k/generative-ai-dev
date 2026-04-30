@@ -46,6 +46,26 @@ jobs:
             echo "No tests directory yet — skipping pytest"
           fi
 
+  web-test:
+    name: Web — typecheck & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck web app
+        run: npm run typecheck --workspace=apps/web
+
+      - name: Run web tests
+        run: npm test --workspace=apps/web -- --ci
+
   ts-typecheck:
     name: TypeScript — typecheck
     runs-on: ubuntu-latest
