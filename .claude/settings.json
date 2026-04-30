@@ -18,5 +18,18 @@
       "Bash(git log *)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/update-docs.py"
+          }
+        ]
+      }
+    ]
   }
 }
