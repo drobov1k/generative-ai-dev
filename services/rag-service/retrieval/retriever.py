@@ -25,9 +25,9 @@ class RetrievalResult:
 
 
 class Retriever:
-    def __init__(self, embedder: Embedder):
+    def __init__(self, embedder: Embedder, store=None) -> None:
         self._embedder = embedder
-        self._vector_store = _build_vector_store()
+        self._vector_store = store if store is not None else _build_vector_store()
 
     async def retrieve(
         self,
@@ -40,7 +40,10 @@ class Retriever:
 
 
 def _build_vector_store():
-    backend = os.getenv("VECTOR_STORE", "mock")
+    backend = os.getenv("VECTOR_STORE", "memory")
+    if backend == "memory":
+        from retrieval.stores.in_memory_store import InMemoryVectorStore
+        return InMemoryVectorStore()
     if backend == "qdrant":
         from retrieval.stores.qdrant_store import QdrantStore
         return QdrantStore()
