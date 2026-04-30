@@ -71,7 +71,8 @@ After completing any code changes, always follow these steps in order:
    - Example: `feat(rag-02): add qdrant vector store backend`
 3. **Commit** — stage changed files and commit with a message matching the same convention as the branch name
 4. **Push** — `git push -u origin <branch-name>`
-5. **Switch back to master** — `git checkout master`
+5. **Enable automerge** — `gh pr merge --auto --squash` (requires branch protection rules and automerge enabled in repo settings)
+6. **Switch back to master** — `git checkout master`
 
 Never commit directly to master. Always confirm the branch name with the user if the spec number is unclear.
 
