@@ -46,6 +46,26 @@ jobs:
             echo "No tests directory yet — skipping pytest"
           fi
 
+  web-lint:
+    name: Web — lint & format
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint web app
+        run: npm run lint --workspace=apps/web
+
+      - name: Check formatting
+        run: npm run format:check --workspace=apps/web
+
   web-test:
     name: Web — typecheck & test
     runs-on: ubuntu-latest
