@@ -99,3 +99,26 @@ RetrievalResult:
     metadata:
       type: object
       description: Passes through Chunk.metadata for citation display
+
+User:
+  description: >
+    An authenticated user stored in the Cognito User Pool.
+    Created automatically on first Google sign-in via Cognito federation.
+  fields:
+    sub:
+      type: string
+      description: Cognito unique identifier (stable across sign-ins)
+    email:
+      type: string
+      format: email
+    name:
+      type: string
+      description: Full display name from the Google profile
+    picture:
+      type: string
+      format: uri
+      description: Google profile photo URL
+      optional: true
+    created_at:
+      type: datetime (ISO 8601)
+      description: Timestamp of first sign-in (Cognito user creation time)

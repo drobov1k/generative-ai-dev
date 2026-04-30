@@ -34,6 +34,8 @@ paths:
     post:
       operationId: uploadDocument
       summary: Upload a document for ingestion and indexing
+      security:
+        - CognitoJWT: []
       requestBody:
         required: true
         content:
@@ -65,6 +67,8 @@ paths:
     post:
       operationId: queryDocuments
       summary: Ask a question against the indexed documents
+      security:
+        - CognitoJWT: []
       requestBody:
         required: true
         content:
@@ -84,6 +88,15 @@ paths:
           $ref: '#/components/responses/InternalError'
 
 components:
+  securitySchemes:
+    CognitoJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Cognito User Pool JWT access token. Obtained by completing the OAuth 2.0
+        authorization code flow via the Cognito Hosted UI (Google federation).
+
   schemas:
     UploadResponse:
       type: object
