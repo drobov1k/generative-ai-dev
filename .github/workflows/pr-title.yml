@@ -1,0 +1,61 @@
+name: PR Title Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  validate-title:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check title format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Pattern: type(optional-scope): description
+          # Valid types for this spec-driven project:
+          #   feat     — new feature
+          #   fix      — bug fix
+          #   refactor — code restructure, no behaviour change
+          #   test     — adding or updating tests
+          #   docs     — documentation only
+          #   chore    — maintenance, deps, tooling
+          #   spec     — changes to specs/ (openapi, domain, rag-pipeline, prompts)
+          #   infra    — CDK / AWS infrastructure
+          #   prompt   — prompt engineering (system prompt, context format, constraints)
+
+          PATTERN='^(feat|fix|refactor|test|docs|chore|spec|infra|prompt)(\([a-z0-9/_-]+\))?: .{1,100}$'
+
+          echo "PR title: \"$PR_TITLE\""
+
+          if echo "$PR_TITLE" | grep -qP "$PATTERN"; then
+            echo "✓ Title matches required pattern"
+          else
+            echo ""
+            echo "✗ PR title does not match the required format."
+            echo ""
+            echo "  Required: type(optional-scope): short description"
+            echo ""
+            echo "  Valid types:"
+            echo "    feat      new feature"
+            echo "    fix       bug fix"
+            echo "    refactor  code restructure"
+            echo "    test      adding/updating tests"
+            echo "    docs      documentation"
+            echo "    chore     maintenance / deps / tooling"
+            echo "    spec      changes to specs/ directory"
+            echo "    infra     CDK / AWS infrastructure"
+            echo "    prompt    prompt engineering changes"
+            echo ""
+            echo "  Examples:"
+            echo "    feat(retrieval): add Qdrant vector store backend"
+            echo "    fix(query): handle empty question gracefully"
+            echo "    spec(openapi): add pagination to query response"
+            echo "    infra(cdk): add DynamoDB table for document metadata"
+            echo "    prompt: tighten no-hallucination constraint in system prompt"
+            echo ""
+            exit 1
+          fi
