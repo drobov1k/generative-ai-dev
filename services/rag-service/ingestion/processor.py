@@ -19,8 +19,9 @@ class DocumentProcessor:
     CHUNK_SIZE = 500   # tokens (approximated as words)
     OVERLAP = 50
 
-    def __init__(self, embedder: Embedder):
+    def __init__(self, embedder: Embedder, store) -> None:
         self._embedder = embedder
+        self._store = store
 
     async def process(
         self,
@@ -30,13 +31,13 @@ class DocumentProcessor:
     ) -> str:
         doc_id = document_id or str(uuid.uuid4())
         text = self._extract_text(content, filename)
-        chunks = self._chunk(text)
+        chunks = self._chunk(text, doc_id)
         embeddings = await self._embedder.embed_batch([c.content for c in chunks])
 
         for chunk, embedding in zip(chunks, embeddings):
             chunk.embedding = embedding
 
-        # TODO: persist chunks to vector store and metadata to DynamoDB
+        self._store.add(chunks)
         return doc_id
 
     def _extract_text(self, content: bytes, filename: str) -> str:
@@ -65,7 +66,7 @@ class DocumentProcessor:
         except Exception:
             return content.decode("utf-8", errors="replace")
 
-    def _chunk(self, text: str) -> list[ProcessedChunk]:
+    def _chunk(self, text: str, document_id: str) -> list[ProcessedChunk]:
         words = text.split()
         chunks: list[ProcessedChunk] = []
         step = self.CHUNK_SIZE - self.OVERLAP
@@ -76,7 +77,7 @@ class DocumentProcessor:
             chunks.append(
                 ProcessedChunk(
                     id=str(uuid.uuid4()),
-                    document_id="",  # filled by caller
+                    document_id=document_id,
                     content=segment,
                     position=i,
                     token_count=len(segment.split()),

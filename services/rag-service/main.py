@@ -6,7 +6,7 @@ import uvicorn
 
 from ingestion.processor import DocumentProcessor
 from embeddings.embedder import Embedder
-from retrieval.retriever import Retriever
+from retrieval.retriever import Retriever, _build_vector_store
 from prompts.templates import PromptBuilder
 from generation.generator import Generator
 
@@ -20,8 +20,9 @@ app.add_middleware(
 )
 
 _embedder = Embedder()
-_processor = DocumentProcessor(_embedder)
-_retriever = Retriever(_embedder)
+_store = _build_vector_store()
+_processor = DocumentProcessor(_embedder, _store)
+_retriever = Retriever(_embedder, _store)
 _prompt_builder = PromptBuilder()
 _generator = Generator()
 
