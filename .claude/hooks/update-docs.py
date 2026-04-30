@@ -24,7 +24,6 @@ AREA_RULES = [
     ("services/llm-python/generation",           "Python generation module",       ["README.md (RAG Pipeline section)", "specs/prompts.yaml"]),
     ("services/llm-python/prompts",              "Python prompt templates",        ["specs/prompts.yaml", "README.md (The RAG Pipeline section)"]),
     ("apps/api/src/handlers",                    "TypeScript Lambda handler",      ["README.md", "specs/openapi.yaml (if request/response shapes changed)"]),
-    ("apps/api/src/client/python-service.ts",    "TS↔Python communication layer", ["README.md (How TypeScript and Python Communicate)", "CLAUDE.md"]),
     ("packages/shared/src/types",                "shared TypeScript types",        ["specs/domain.yaml (keep in sync)", "README.md"]),
     ("infra/cdk/lib/stack.ts",                   "CDK stack definition",           ["README.md (Architecture + Deployment sections)", "CLAUDE.md"]),
 ]

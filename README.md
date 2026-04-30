@@ -16,7 +16,6 @@ A production-ready, AWS-native Retrieval-Augmented Generation (RAG) system for d
   - [Claude Code as the Engineering Tool](#claude-code-as-the-engineering-tool)
 - [Architecture](#architecture)
   - [Polyglot Design: Why Two Languages](#polyglot-design-why-two-languages)
-  - [How TypeScript and Python Communicate](#how-typescript-and-python-communicate)
   - [The RAG Pipeline](#the-rag-pipeline)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -114,28 +113,7 @@ TypeScript excels here because the AWS ecosystem is deeply TypeScript-native, CD
 
 Python is the de facto language of the ML/AI ecosystem. Every embedding library, vector store client, document parser, and LLM SDK has a Python-first implementation. Fighting this by doing RAG in TypeScript adds complexity for no gain.
 
-The key discipline: **the boundary is enforced**. Python files have no TypeScript neighbours. TypeScript files contain no ML logic. The only connection between the two layers is a single abstraction.
-
-### How TypeScript and Python Communicate
-
-`apps/api/src/client/python-service.ts` is the only file that knows both worlds exist:
-
-```
-Local development:
-  TS Handler → PythonServiceClient → HTTP fetch → FastAPI (localhost:8000)
-
-AWS production:
-  TS Handler → PythonServiceClient → Lambda InvokeCommand → Python Lambda
-```
-
-The switch is automatic based on environment. When `AWS_EXECUTION_ENV` is set and `PYTHON_LAMBDA_ARN` is present, the client uses the Lambda SDK. Otherwise it falls back to HTTP. Neither the handlers nor the Python service knows or cares which transport is used.
-
-This means:
-- Local development requires only `pip install` and `python main.py`. No Docker, no Lambda emulation.
-- The Python service is testable in isolation with `curl`.
-- Moving from local to AWS requires no code changes — only environment variables.
-
-On the Python side, [Mangum](https://mangum.fastapiexpert.com/) wraps the FastAPI ASGI app as a Lambda handler. The same application code runs locally under `uvicorn` and in AWS under the Lambda runtime.
+The boundary is enforced: Python files have no TypeScript neighbours. TypeScript files contain no ML logic. How the two layers integrate in AWS is an open architecture decision — the Python service is independently runnable and testable via `curl` regardless of what calls it.
 
 ### The RAG Pipeline
 
@@ -192,13 +170,10 @@ generative-ai-dev/
 │
 ├── apps/
 │   ├── api/                        ← TypeScript Lambda handlers
-│   │   └── src/
-│   │       ├── client/
-│   │       │   └── python-service.ts  The TS↔Python abstraction layer
-│   │       └── handlers/
+│   │   └── src/handlers/
 │   │           ├── health.ts
-│   │           ├── upload.ts
-│   │           └── query.ts
+│   │           ├── upload.ts          (backend integration TBD)
+│   │           └── query.ts           (backend integration TBD)
 │   └── web/                        ← Next.js frontend (scaffold)
 │
 ├── packages/
@@ -310,7 +285,7 @@ With Claude Code running in this project, these commands are available:
 
 The `.claude/` directory is the Claude Code project configuration. It makes every session in this repo immediately context-aware — Claude doesn't need to rediscover the architecture or conventions.
 
-**`CLAUDE.md`** — The project brief loaded at session start. Contains architecture overview, directory purpose, TS↔Python contract, and per-language conventions. Think of it as onboarding documentation written for an AI colleague.
+**`CLAUDE.md`** — The project brief loaded at session start. Contains architecture overview, directory purpose, and per-language conventions. Think of it as onboarding documentation written for an AI colleague.
 
 **`settings.json`** — Declares which Bash commands are pre-approved. Without this, Claude prompts for permission before every `npm run` or `curl`. The allowlist covers safe, read-or-build operations; destructive operations (deploy, delete) still require confirmation.
 

@@ -17,6 +17,7 @@ export class DocQaStack extends cdk.Stack {
     });
 
     // --- Python Lambda (Docker image) ---
+    // Owns all RAG logic: ingestion, embeddings, retrieval, generation
     const pythonFn = new lambda.DockerImageFunction(this, "PythonService", {
       code: lambda.DockerImageCode.fromImageAsset("../../services/llm-python"),
       memorySize: 1024,
@@ -32,10 +33,7 @@ export class DocQaStack extends cdk.Stack {
     documentBucket.grantReadWrite(pythonFn);
 
     // --- TypeScript Lambda (Node.js bundled handlers) ---
-    const commonEnv: Record<string, string> = {
-      PYTHON_LAMBDA_ARN: pythonFn.functionArn,
-    };
-
+    // TODO: integration pattern between TS handlers and Python service is TBD
     const makeNodeFn = (id: string, handler: string) =>
       new lambda.Function(this, id, {
         runtime: lambda.Runtime.NODEJS_20_X,
@@ -43,15 +41,11 @@ export class DocQaStack extends cdk.Stack {
         code: lambda.Code.fromAsset("../../apps/api/dist"),
         memorySize: 256,
         timeout: cdk.Duration.seconds(30),
-        environment: commonEnv,
       });
 
     const healthFn = makeNodeFn("HealthHandler", "handlers/health.handler");
     const uploadFn = makeNodeFn("UploadHandler", "handlers/upload.handler");
     const queryFn = makeNodeFn("QueryHandler", "handlers/query.handler");
-
-    pythonFn.grantInvoke(uploadFn);
-    pythonFn.grantInvoke(queryFn);
 
     // --- API Gateway ---
     const api = new apigateway.RestApi(this, "DocQaApi", {

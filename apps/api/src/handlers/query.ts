@@ -1,31 +1,24 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { PythonServiceClient } from "../client/python-service";
 import type { QueryRequest, QueryResponse } from "@gen-ai/shared";
 
-const python = new PythonServiceClient();
-
+// TODO: wire to the RAG backend once the architecture is decided
 export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
-    const body = JSON.parse(event.body ?? "{}") as QueryRequest;
-    if (!body.question?.trim()) {
-      return {
-        statusCode: 400,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "question is required" }),
-      };
-    }
-    const result = await python.post<QueryResponse>("/query", body);
+  const body = JSON.parse(event.body ?? "{}") as QueryRequest;
+  if (!body.question?.trim()) {
     return {
-      statusCode: 200,
+      statusCode: 400,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(result),
-    };
-  } catch (err) {
-    console.error("query handler error", err);
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Query failed" }),
+      body: JSON.stringify({ error: "question is required" }),
     };
   }
+  const response: QueryResponse = {
+    answer: "Query handler not yet wired to a backend",
+    question: body.question,
+    sources: [],
+  };
+  return {
+    statusCode: 200,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(response),
+  };
 };
