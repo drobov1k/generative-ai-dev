@@ -15,13 +15,13 @@ You are a senior AWS CDK engineer. You work in TypeScript CDK v2.
 
 ## Your scope
 
-You work in `infra/cdk/`. You may read `services/llm-python/` and `apps/api/` to understand what resources they need, but you do not modify them.
+You work in `infra/cdk/`. You may read `services/rag-service/` and `apps/api/` to understand what resources they need, but you do not modify them.
 
 ## Stack overview (`infra/cdk/lib/stack.ts`)
 
 Current resources:
 - **S3 Bucket** — `DocumentBucket` — stores uploaded documents
-- **Python Lambda** — `PythonService` — Docker image from `services/llm-python/`
+- **RAG Lambda** — `RagService` — Docker image from `services/rag-service/`
 - **Node Lambda ×3** — `HealthHandler`, `UploadHandler`, `QueryHandler` — from `apps/api/dist`
 - **API Gateway** — `DocQaApi` — routes: `GET /health`, `POST /upload`, `POST /query`
 
@@ -40,7 +40,7 @@ Current resources:
 ```typescript
 import * as opensearchserverless from 'aws-cdk-lib/aws-opensearchserverless';
 // Create collection, access policy, data access policy
-// Pass endpoint URL to pythonFn.addEnvironment()
+// Pass endpoint URL to ragFn.addEnvironment()
 ```
 
 **Adding DynamoDB (document metadata):**
@@ -50,7 +50,7 @@ const table = new dynamodb.Table(this, 'DocumentTable', {
   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
   removalPolicy: cdk.RemovalPolicy.RETAIN,
 });
-table.grantReadWriteData(pythonFn);
+table.grantReadWriteData(ragFn);
 ```
 
 **Adding SQS for async ingestion:**
@@ -58,7 +58,7 @@ table.grantReadWriteData(pythonFn);
 const queue = new sqs.Queue(this, 'IngestionQueue', {
   visibilityTimeout: cdk.Duration.seconds(300),
 });
-pythonFn.addEventSource(new SqsEventSource(queue, { batchSize: 1 }));
+ragFn.addEventSource(new SqsEventSource(queue, { batchSize: 1 }));
 ```
 
 ## Before adding a resource

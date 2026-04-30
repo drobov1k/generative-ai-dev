@@ -16,10 +16,10 @@ export class DocQaStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    // --- Python Lambda (Docker image) ---
+    // --- RAG Lambda (Docker image) ---
     // Owns all RAG logic: ingestion, embeddings, retrieval, generation
-    const pythonFn = new lambda.DockerImageFunction(this, "PythonService", {
-      code: lambda.DockerImageCode.fromImageAsset("../../services/llm-python"),
+    const ragFn = new lambda.DockerImageFunction(this, "RagService", {
+      code: lambda.DockerImageCode.fromImageAsset("../../services/rag-service"),
       memorySize: 1024,
       timeout: cdk.Duration.seconds(60),
       environment: {
@@ -30,7 +30,7 @@ export class DocQaStack extends cdk.Stack {
       },
     });
 
-    documentBucket.grantReadWrite(pythonFn);
+    documentBucket.grantReadWrite(ragFn);
 
     // --- TypeScript Lambda (Node.js bundled handlers) ---
     // TODO: integration pattern between TS handlers and Python service is TBD
@@ -72,6 +72,6 @@ export class DocQaStack extends cdk.Stack {
     // --- Outputs ---
     new cdk.CfnOutput(this, "ApiUrl", { value: api.url });
     new cdk.CfnOutput(this, "DocumentBucketName", { value: documentBucket.bucketName });
-    new cdk.CfnOutput(this, "PythonFunctionArn", { value: pythonFn.functionArn });
+    new cdk.CfnOutput(this, "RagServiceFunctionArn", { value: ragFn.functionArn });
   }
 }

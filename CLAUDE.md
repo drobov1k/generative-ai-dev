@@ -7,7 +7,7 @@ RAG-based Document Q&A system on AWS. Polyglot monorepo: **TypeScript** owns the
 ```
 User → API Gateway → TS Lambda handlers (apps/api)
 
-Python Lambda (services/llm-python) — RAG service, integration pattern TBD
+Python Lambda (services/rag-service) — RAG service, integration pattern TBD
     ↓
 Bedrock (embeddings + generation) + Vector Store
 ```
@@ -20,7 +20,7 @@ Bedrock (embeddings + generation) + Vector Store
 | Path | Purpose |
 |------|---------|
 | `specs/` | Source of truth — change specs before changing code |
-| `services/llm-python/` | ALL LLM/RAG logic: ingestion, embeddings, retrieval, generation |
+| `services/rag-service/` | ALL LLM/RAG logic: ingestion, embeddings, retrieval, generation |
 | `apps/api/src/handlers/` | TS Lambda handlers — currently stubbed, backend integration TBD |
 | `packages/shared/src/types/index.ts` | Canonical TS types, mirror of `specs/domain.yaml` |
 | `infra/cdk/lib/stack.ts` | Full AWS stack (S3, Lambda×4, API GW) |
@@ -29,7 +29,7 @@ Bedrock (embeddings + generation) + Vector Store
 
 ```bash
 # Python service — no AWS credentials needed in mock mode
-cd services/llm-python
+cd services/rag-service
 cp .env.example .env          # MOCK_EMBEDDINGS=true, MOCK_GENERATION=true
 pip install -r requirements.txt
 python main.py                 # → http://localhost:8000
@@ -59,9 +59,25 @@ curl -s -X POST http://localhost:8000/query \
 - `specs/domain.yaml` is the domain model — update it before changing shared types
 - `specs/prompts.yaml` is version-controlled — treat prompt changes like code changes
 
+## Git Workflow
+
+After completing any code changes, always follow these steps in order:
+
+1. **Pull latest master** — `git checkout master && git pull origin master`
+2. **Create a branch** — branch name must follow the convention:
+   - `feat(<spec-number>): <short description>` for new features
+   - `fix(<spec-number>): <short description>` for bug fixes
+   - `<spec-number>` is the relevant spec identifier (e.g. `rag-01`, `api-03`); omit if not tied to a spec
+   - Example: `feat(rag-02): add qdrant vector store backend`
+3. **Commit** — stage changed files and commit with a message matching the same convention as the branch name
+4. **Push** — `git push -u origin <branch-name>`
+5. **Switch back to master** — `git checkout master`
+
+Never commit directly to master. Always confirm the branch name with the user if the spec number is unclear.
+
 ## Environment Variables
 
-Controlled via `services/llm-python/.env` (copy from `.env.example`):
+Controlled via `services/rag-service/.env` (copy from `.env.example`):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|

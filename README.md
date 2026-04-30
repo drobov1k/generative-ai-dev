@@ -67,7 +67,7 @@ specs/
 Specs serve as the **source of truth**. When behaviour needs to change, the spec changes first, and the implementation follows. This has several properties that matter:
 
 - **Contracts are explicit before code exists.** There is no ambiguity about what a `RetrievalResult` contains or what status codes `/upload` returns.
-- **Multiple language implementations stay in sync.** The TypeScript types in `packages/shared/src/types/index.ts` and the Python dataclasses in `services/llm-python/retrieval/retriever.py` are both derived from `specs/domain.yaml`.
+- **Multiple language implementations stay in sync.** The TypeScript types in `packages/shared/src/types/index.ts` and the Python dataclasses in `services/rag-service/retrieval/retriever.py` are both derived from `specs/domain.yaml`.
 - **The AI has a reference to validate against.** Claude Code can check whether generated code matches the spec, rather than inventing behaviour arbitrarily.
 - **Prompts are versioned like code.** `specs/prompts.yaml` contains the exact system prompt, context format, and generation constraints. Changing a prompt is a tracked, deliberate decision — not an ad-hoc edit buried in application code.
 
@@ -81,7 +81,7 @@ This project is configured to give Claude Code the context it needs to work effe
 
 **`.claude/commands/`** — project-specific slash commands. Type `/dev` to start the Python service, `/test` to run the test suite, `/rag-query what does the document say about X` to probe the pipeline. These are markdown files that Claude executes as structured tasks.
 
-**`.claude/agents/`** — specialized subagents. When you ask Claude to "add Qdrant support", it routes to the `python-rag` agent which knows the module structure, Bedrock API patterns, and the `MOCK_*` env var convention. When you ask it to "add a DynamoDB table", it routes to `cdk-infra`, which knows the CDK stack topology and IAM grant patterns.
+**`.claude/agents/`** — specialized subagents. When you ask Claude to "add Qdrant support", it routes to the `rag` agent which knows the module structure, Bedrock API patterns, and the `MOCK_*` env var convention. When you ask it to "add a DynamoDB table", it routes to `cdk-infra`, which knows the CDK stack topology and IAM grant patterns.
 
 **`.claude/settings.json`** — pre-approved Bash patterns (`npm run *`, `pip install *`, `curl *`) so routine operations don't require confirmation.
 
@@ -157,7 +157,7 @@ generative-ai-dev/
 │   ├── rag-pipeline.md                Pipeline flows + error handling
 │   └── prompts.yaml                   System prompt, context format, constraints
 │
-├── services/llm-python/            ← Python intelligence layer
+├── services/rag-service/            ← Python intelligence layer
 │   ├── main.py                        FastAPI app (local dev entrypoint)
 │   ├── lambda_handler.py              Mangum ASGI → Lambda adapter
 │   ├── Dockerfile                     ECR image for Lambda deployment
@@ -188,7 +188,7 @@ generative-ai-dev/
 ├── .claude/                        ← Claude Code project configuration
 │   ├── settings.json                  Pre-approved Bash patterns
 │   ├── commands/                      Slash commands: /dev /test /rag-query /deploy
-│   └── agents/                        Subagents: python-rag, cdk-infra, spec-guardian
+│   └── agents/                        Subagents: rag, cdk-infra, spec-guardian
 │
 ├── CLAUDE.md                       ← Loaded into every Claude session
 └── package.json                    ← npm workspaces root
@@ -211,7 +211,7 @@ The Python service runs in mock mode by default — no Bedrock credentials requi
 
 ```bash
 # 1. Install Python dependencies
-cd services/llm-python
+cd services/rag-service
 cp .env.example .env
 pip install -r requirements.txt
 
@@ -235,7 +235,7 @@ curl -X POST http://localhost:8000/query \
 ### Enable Real Bedrock Calls
 
 ```bash
-# In services/llm-python/.env
+# In services/rag-service/.env
 MOCK_EMBEDDINGS=false
 MOCK_GENERATION=false
 AWS_REGION=us-east-1
@@ -264,7 +264,7 @@ npm run cdk:deploy
 # Outputs include:
 #   DocQaStack.ApiUrl            → API Gateway URL
 #   DocQaStack.DocumentBucketName → S3 bucket
-#   DocQaStack.PythonFunctionArn  → Python Lambda ARN
+#   DocQaStack.RagServiceFunctionArn  → Python Lambda ARN
 ```
 
 ### Using Claude Code Slash Commands
@@ -292,7 +292,7 @@ The `.claude/` directory is the Claude Code project configuration. It makes ever
 **`commands/`** — Project-specific slash commands, written as markdown. Each file is a task description with optional `$ARGUMENTS`. Claude executes the steps described in the file.
 
 **`agents/`** — Specialized subagents with focused context:
-- `python-rag` — Knows Bedrock API call shapes, the `MOCK_*` pattern, module layout, and how to add new vector store backends
+- `rag` — Knows Bedrock API call shapes, the `MOCK_*` pattern, module layout, and how to add new vector store backends
 - `cdk-infra` — Knows the current stack topology, CDK v2 patterns, IAM grant methods, and what CfnOutputs to add
 - `spec-guardian` — Read-only reviewer that produces a structured `PASS / WARN / FAIL` report against the spec files
 
@@ -302,7 +302,7 @@ The `.claude/` directory is the Claude Code project configuration. It makes ever
 
 ### Adding a Vector Store Backend
 
-1. Create `services/llm-python/retrieval/stores/<name>_store.py` implementing the `search()` interface
+1. Create `services/rag-service/retrieval/stores/<name>_store.py` implementing the `search()` interface
 2. Register it in `_build_vector_store()` in `retrieval/retriever.py`
 3. Add the client to `requirements.txt`
 4. Set `VECTOR_STORE=<name>` in `.env`
@@ -311,7 +311,7 @@ The `.claude/` directory is the Claude Code project configuration. It makes ever
 
 1. Define the path, schema, and response in `specs/openapi.yaml`
 2. Update `packages/shared/src/types/index.ts` with any new types
-3. Create the FastAPI route in `services/llm-python/main.py`
+3. Create the FastAPI route in `services/rag-service/main.py`
 4. Create the Lambda handler in `apps/api/src/handlers/`
 5. Wire it to API Gateway in `infra/cdk/lib/stack.ts`
 
