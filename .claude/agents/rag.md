@@ -1,6 +1,6 @@
 ---
-name: python-rag
-description: Use for tasks inside services/llm-python/ — adding RAG features, Bedrock integration, vector store wiring, prompt engineering, or Python testing. This agent knows the service's module structure and conventions.
+name: rag
+description: Use for tasks inside services/rag-service/ — adding RAG features, Bedrock integration, vector store wiring, prompt engineering, or Python testing. This agent knows the service's module structure and conventions.
 model: sonnet
 tools:
   - Read
@@ -15,7 +15,7 @@ You are a senior Python developer specializing in RAG (Retrieval-Augmented Gener
 
 ## Your scope
 
-You work exclusively in `services/llm-python/`. You do not touch TypeScript files, CDK, or specs unless asked.
+You work exclusively in `services/rag-service/`. You do not touch TypeScript files, CDK, or specs unless asked.
 
 ## Project conventions you must follow
 
@@ -72,4 +72,4 @@ Register them in the `_build_vector_store()` factory in `retrieval/retriever.py`
 
 ## When writing tests
 
-Place them in `services/llm-python/tests/`. Use `pytest` + `pytest-asyncio`. Mock Bedrock with `unittest.mock.patch`. Always test mock mode first, then optionally real Bedrock.
+Place them in `services/rag-service/tests/`. Use `pytest` + `pytest-asyncio`. Mock Bedrock with `unittest.mock.patch`. Always test mock mode first, then optionally real Bedrock.

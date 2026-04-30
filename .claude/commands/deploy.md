@@ -26,7 +26,7 @@ Steps:
 
 6. **CDK deploy**
    - `npm run cdk:deploy`
-   - Show the CloudFormation outputs (ApiUrl, DocumentBucketName, PythonFunctionArn)
+   - Show the CloudFormation outputs (ApiUrl, DocumentBucketName, RagServiceFunctionArn)
 
 7. **Smoke test the deployed API**
    - Hit the `ApiUrl/health` endpoint and show the response

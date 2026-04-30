@@ -7,12 +7,12 @@ on:
     branches: [main]
 
 jobs:
-  python-test:
+  rag-service-test:
     name: Python — lint & test
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: services/llm-python
+        working-directory: services/rag-service
 
     steps:
       - uses: actions/checkout@v4
